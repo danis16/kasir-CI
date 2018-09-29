@@ -1,0 +1,170 @@
+<?php
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class Merek extends CI_Controller
+{
+    function __construct()
+    {
+        parent::__construct();
+        $this->load->model('Merek_model');
+        $this->load->library('form_validation');
+    }    
+function data() {
+        $table = 'merek';
+        $primaryKey = 'id';
+        $columns = array(
+         array('db' => 'id', 'dt' => 0),array('db' => 'id', 'dt' => 0),
+array('db' => 'merek', 'dt' => 1),
+array('db' => 'kode', 'dt' => 2),
+array(
+                'db' => 'id',
+                'dt' => 3,
+                'formatter' => function( $d, $row ) {
+            return 
+            // anchor('Merek/read/'.$d,'<i class="fa fa-eye"></i>',"class='btn btn-sm btn-danger'").' '.
+                   anchor('Merek/update/'.$d,'<i class="fa fa-edit"></i>',"class='btn btn-sm btn-danger'");
+                   // .' '.
+                   // anchor('Merek/delete/'.$d,'<i class="fa fa-trash"></i>',"class='btn btn-sm btn-danger'");
+                }
+            )
+        );
+
+        $sql_details = array(
+            'user' => $this->db->username,
+            'pass' => $this->db->password,
+            'db' => $this->db->database,
+            'host' => $this->db->hostname
+        );
+        
+        $this->load->library('ssp');
+        echo json_encode(
+                SSP::simple($_GET, $sql_details, $table, $primaryKey, $columns)
+        );
+    }
+
+    public function index()
+    {
+        $merek = $this->Merek_model->get_all();
+
+        $data = array(
+            'merek_data' => $merek
+        );
+
+        $this->template->load('template','merek/merek_list', $data);
+    }
+
+    public function read($id) 
+    {
+        $row = $this->Merek_model->get_by_id($id);
+        if ($row) {
+            $data = array(
+		'id' => $row->id,
+		'merek' => $row->merek,
+		'kode' => $row->kode,
+	    );
+            $this->load->view('merek/merek_read', $data);
+        } else {
+            $this->session->set_flashdata('message', 'Record Not Found');
+            redirect(site_url('merek'));
+        }
+    }
+
+    public function create() 
+    {
+        $data = array(
+            'button' => 'Create',
+            'action' => site_url('merek/create_action'),
+	    'id' => set_value('id'),
+	    'merek' => set_value('merek'),
+	    'kode' => set_value('kode'),
+	);
+        $this->template->load('template','merek/merek_form', $data);
+    }
+    
+    public function create_action() 
+    {
+        $this->_rules();
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->create();
+        } else {
+            $data = array(
+		'merek' => $this->input->post('merek',TRUE),
+		'kode' => $this->input->post('kode',TRUE),
+	    );
+
+            $this->Merek_model->insert($data);
+            $this->session->set_flashdata('message', 'Create Record Success');
+            redirect(site_url('merek'));
+        }
+    }
+    
+    public function update($id) 
+    {
+        $row = $this->Merek_model->get_by_id($id);
+
+        if ($row) {
+            $data = array(
+                'button' => 'Update',
+                'action' => site_url('merek/update_action'),
+		'id' => set_value('id', $row->id),
+		'merek' => set_value('merek', $row->merek),
+		'kode' => set_value('kode', $row->kode),
+	    );
+            $this->template->load('template','merek/merek_form', $data);
+        } else {
+            $this->session->set_flashdata('message', 'Record Not Found');
+            redirect(site_url('merek'));
+        }
+    }
+    
+    public function update_action() 
+    {
+        $this->_rules();
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->update($this->input->post('id', TRUE));
+        } else {
+            $data = array(
+		'merek' => $this->input->post('merek',TRUE),
+		'kode' => $this->input->post('kode',TRUE),
+	    );
+
+            $this->Merek_model->update($this->input->post('id', TRUE), $data);
+            $this->session->set_flashdata('message', 'Update Record Success');
+            redirect(site_url('merek'));
+        }
+    }
+    
+    public function delete($id) 
+    {
+        $row = $this->Merek_model->get_by_id($id);
+
+        if ($row) {
+            $this->Merek_model->delete($id);
+            $this->session->set_flashdata('message', 'Delete Record Success');
+            redirect(site_url('merek'));
+        } else {
+            $this->session->set_flashdata('message', 'Record Not Found');
+            redirect(site_url('merek'));
+        }
+    }
+
+    public function _rules() 
+    {
+	$this->form_validation->set_rules('merek', 'merek', 'trim|required|is_unique[merek.merek]');
+	$this->form_validation->set_rules('kode', 'kode', 'trim|required|is_unique[merek.kode]');
+
+	$this->form_validation->set_rules('id', 'id', 'trim');
+	$this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
+    }
+
+}
+
+/* End of file Merek.php */
+/* Location: ./application/controllers/Merek.php */
+/* Please DO NOT modify this information : */
+/* Generated by Harviacode Codeigniter CRUD Generator 2018-03-21 01:35:57 */
+/* http://harviacode.com */

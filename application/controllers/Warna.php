@@ -1,0 +1,170 @@
+<?php
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
+
+class Warna extends CI_Controller
+{
+    function __construct()
+    {
+        parent::__construct();
+        $this->load->model('Warna_model');
+        $this->load->library('form_validation');
+    }    
+function data() {
+        $table = 'warna';
+        $primaryKey = 'id';
+        $columns = array(
+         array('db' => 'id', 'dt' => 0),array('db' => 'id', 'dt' => 0),
+array('db' => 'warna', 'dt' => 1),
+array('db' => 'kode', 'dt' => 2),
+array(
+                'db' => 'id',
+                'dt' => 3,
+                'formatter' => function( $d, $row ) {
+            return 
+            // anchor('Warna/read/'.$d,'<i class="fa fa-eye"></i>',"class='btn btn-sm btn-danger'").' '.
+                   anchor('Warna/update/'.$d,'<i class="fa fa-edit"></i>',"class='btn btn-sm btn-danger'");
+                   // .' '.
+                   // anchor('Warna/delete/'.$d,'<i class="fa fa-trash"></i>',"class='btn btn-sm btn-danger'");
+                }
+            )
+        );
+
+        $sql_details = array(
+            'user' => $this->db->username,
+            'pass' => $this->db->password,
+            'db' => $this->db->database,
+            'host' => $this->db->hostname
+        );
+        
+        $this->load->library('ssp');
+        echo json_encode(
+                SSP::simple($_GET, $sql_details, $table, $primaryKey, $columns)
+        );
+    }
+
+    public function index()
+    {
+        $warna = $this->Warna_model->get_all();
+
+        $data = array(
+            'warna_data' => $warna
+        );
+
+        $this->template->load('template','warna/warna_list', $data);
+    }
+
+    public function read($id) 
+    {
+        $row = $this->Warna_model->get_by_id($id);
+        if ($row) {
+            $data = array(
+		'id' => $row->id,
+		'warna' => $row->warna,
+		'kode' => $row->kode,
+	    );
+            $this->load->view('warna/warna_read', $data);
+        } else {
+            $this->session->set_flashdata('message', 'Record Not Found');
+            redirect(site_url('warna'));
+        }
+    }
+
+    public function create() 
+    {
+        $data = array(
+            'button' => 'Create',
+            'action' => site_url('warna/create_action'),
+	    'id' => set_value('id'),
+	    'warna' => set_value('warna'),
+	    'kode' => set_value('kode'),
+	);
+        $this->template->load('template','warna/warna_form', $data);
+    }
+    
+    public function create_action() 
+    {
+        $this->_rules();
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->create();
+        } else {
+            $data = array(
+		'warna' => $this->input->post('warna',TRUE),
+		'kode' => $this->input->post('kode',TRUE),
+	    );
+
+            $this->Warna_model->insert($data);
+            $this->session->set_flashdata('message', 'Create Record Success');
+            redirect(site_url('warna'));
+        }
+    }
+    
+    public function update($id) 
+    {
+        $row = $this->Warna_model->get_by_id($id);
+
+        if ($row) {
+            $data = array(
+                'button' => 'Update',
+                'action' => site_url('warna/update_action'),
+		'id' => set_value('id', $row->id),
+		'warna' => set_value('warna', $row->warna),
+		'kode' => set_value('kode', $row->kode),
+	    );
+            $this->template->load('template','warna/warna_form', $data);
+        } else {
+            $this->session->set_flashdata('message', 'Record Not Found');
+            redirect(site_url('warna'));
+        }
+    }
+    
+    public function update_action() 
+    {
+        $this->_rules();
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->update($this->input->post('id', TRUE));
+        } else {
+            $data = array(
+		'warna' => $this->input->post('warna',TRUE),
+		'kode' => $this->input->post('kode',TRUE),
+	    );
+
+            $this->Warna_model->update($this->input->post('id', TRUE), $data);
+            $this->session->set_flashdata('message', 'Update Record Success');
+            redirect(site_url('warna'));
+        }
+    }
+    
+    public function delete($id) 
+    {
+        $row = $this->Warna_model->get_by_id($id);
+
+        if ($row) {
+            $this->Warna_model->delete($id);
+            $this->session->set_flashdata('message', 'Delete Record Success');
+            redirect(site_url('warna'));
+        } else {
+            $this->session->set_flashdata('message', 'Record Not Found');
+            redirect(site_url('warna'));
+        }
+    }
+
+    public function _rules() 
+    {
+	$this->form_validation->set_rules('warna', 'warna', 'trim|required|is_unique[warna.warna]');
+	$this->form_validation->set_rules('kode', 'kode', 'trim|required|is_unique[warna.kode]');
+
+	$this->form_validation->set_rules('id', 'id', 'trim');
+	$this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
+    }
+
+}
+
+/* End of file Warna.php */
+/* Location: ./application/controllers/Warna.php */
+/* Please DO NOT modify this information : */
+/* Generated by Harviacode Codeigniter CRUD Generator 2018-02-27 12:33:32 */
+/* http://harviacode.com */
